@@ -83,12 +83,13 @@ class Board {
 
   detectWinner() {
     //Horizontals
+    let winners = [];
     let winningCombo = [
       // Horizontals
       [0, 1, 2],
       [3, 4, 5],
       [6, 7, 8],
-      //   Verticals
+      // //   Verticals
       [0, 3, 6],
       [1, 4, 7],
       [2, 5, 8],
@@ -107,21 +108,23 @@ class Board {
         return false;
       }
     };
-    let winners = [];
+
     winningCombo.forEach((combo) => {
-      let winner = combo.reduce(checkMatch);
-      if (winner == false) {
+      let isWon = combo.reduce(checkMatch);
+      let testedPlayer = this.boardArray[combo[0]];
+      if (isWon == false || testedPlayer == "") {
         //   No winner yet
       } else {
+        let winner = testedPlayer;
         winners.push(winner);
       }
-
-      if (winners.length > 0) {
-        return winners[0];
-      } else {
-        return NaN;
-      }
     });
+
+    if (winners.length > 0) {
+      return winners[0];
+    } else {
+      return NaN;
+    }
   }
 
   reset() {
@@ -147,8 +150,6 @@ class Board {
   }
 
   updateValue(boxIndex, symbol) {
-    console.log(boxIndex);
-
     let htmlBox = document.getElementById(boxIndex);
     let htmlBoxValue = htmlBox.firstElementChild;
 
