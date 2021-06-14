@@ -23,18 +23,35 @@ requirement list:
 
 class Game {
   constructor() {
-    this.initiate();
     this.boardHistory = [];
-    this.scoreBoard = {
-      player1: 0,
-      player2: 0,
-    };
-    this.roundWinner;
+
+    this.roundWon;
     this.player1 = new Player("X", "Player 1");
     this.player2 = new Player("O", "Player 2");
     this.player__active = this.player1;
-    this.board = new Board(this.runTurn);
-    this.boardContainer = document.querySelector(".container");
+    this.scoreBoard = {};
+    this.scoreBoard[this.player1.playerName] = 0;
+    this.scoreBoard[this.player2.playerName] = 0;
+    this.boardContainer = document.querySelector(".board");
+    this.board = new Board();
+    this.scoreBoardContainer = document.querySelector(".scoreboard");
+    this.initiate();
+  }
+  initiate() {
+    // Create the score board
+    for (const [player, score] of Object.entries(this.scoreBoard)) {
+      let scoreCard = document.createElement("div");
+      scoreCard.innerHTML = `
+      <div class="player__card">
+      <div class="player__name" id="${player}__name"> ${player}</div>
+      <div class="player__score"id="${player}__score"> ${score}</div>
+      </div>
+      `;
+
+      this.scoreBoardContainer.appendChild(scoreCard);
+    }
+
+    // Event listeners
     this.boardContainer.addEventListener("click", (e) => {
       let index = e.target.classList.contains("box__value")
         ? e.target.parentNode.id
@@ -43,13 +60,30 @@ class Game {
       this.runTurn(index);
       e.stopPropagation();
     });
-  }
-  initiate() {
-    // this.board.initiate();
+
+    let resetButton = document.querySelector(".reset");
+    resetButton.addEventListener("click", (e) => {
+      this.beginNextRound();
+    });
   }
 
   concludeGame() {
-    alert("game concluded!");
+    this.updateScore();
+    console.log(this.player__active.playerName);
+    console.table(this.scoreBoard);
+  }
+
+  beginNextRound() {
+    this.board.initiate();
+  }
+
+  updateScore() {
+    this.scoreBoard[this.player__active.playerName] += 1;
+    let playerScoreElement = document.getElementById(
+      `${this.player__active.playerName}__score`
+    );
+    playerScoreElement.innerHTML =
+      this.scoreBoard[this.player__active.playerName];
   }
 
   runTurn(boxIndex) {
@@ -58,13 +92,14 @@ class Game {
       this.boardHistory.push(newBoard);
     }
 
-    this.player__active =
-      this.player__active == this.player1 ? this.player2 : this.player1;
-
-    this.roundWinner = this.board.detectWinner();
-    if (this.roundWinner) {
+    this.roundWon = this.board.detectWinner();
+    if (this.roundWon) {
       this.concludeGame();
     }
+
+
+    this.player__active =
+      this.player__active == this.player1 ? this.player2 : this.player1;
   }
 
   undo() {}
@@ -73,11 +108,9 @@ class Game {
 }
 
 class Board {
-  constructor(callBackFn = NaN) {
-    this.boardContainer = document.querySelector(".container");
+  constructor() {
+    this.boardContainer = document.querySelector(".board");
     this.boardArray = [];
-    this.reset();
-    this.activeSymbol;
     this.initiate();
   }
 
@@ -99,9 +132,6 @@ class Board {
     ];
 
     let checkMatch = (accummulated, currentValue) => {
-      if (currentValue == false) {
-        return false;
-      }
       if (this.boardArray[accummulated] == this.boardArray[currentValue]) {
         return currentValue;
       } else {
@@ -115,8 +145,7 @@ class Board {
       if (isWon == false || testedPlayer == "") {
         //   No winner yet
       } else {
-        let winner = testedPlayer;
-        winners.push(winner);
+        winners.push(testedPlayer);
       }
     });
 
@@ -127,15 +156,13 @@ class Board {
     }
   }
 
-  reset() {
+  initiate() {
     this.boardArray = ["", "", "", "", "", "", "", "", ""];
 
-    if (this.boardContainer.firstChild) {
+    while (this.boardContainer.firstChild) {
       this.boardContainer.removeChild(this.boardContainer.lastChild);
     }
-  }
 
-  initiate() {
     this.boardArray.forEach((symbol, index) => {
       let htmlBox = document.createElement("div");
       htmlBox.innerHTML = `
@@ -150,6 +177,7 @@ class Board {
   }
 
   updateValue(boxIndex, symbol) {
+    console.log("triggered");
     let htmlBox = document.getElementById(boxIndex);
     let htmlBoxValue = htmlBox.firstElementChild;
 
